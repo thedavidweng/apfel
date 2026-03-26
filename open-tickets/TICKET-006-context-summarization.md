@@ -1,7 +1,7 @@
 # TICKET-006: Opportunistic Context Summarization
 
 **Status:** Open
-**Priority:** P2 (quality improvement for long conversations)
+**Priority:** P3 (nice-to-have, current truncation works)
 **Blocked by:** Nothing
 
 ---
