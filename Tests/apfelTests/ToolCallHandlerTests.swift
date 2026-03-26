@@ -113,14 +113,14 @@ func runToolCallHandlerTests() {
 
     // MARK: - Plain string arguments (TICKET-013)
 
-    test("handles arguments as plain string (not JSON)") {
+    test("handles arguments as plain string (not JSON) — wraps as JSON object") {
         // Model sometimes returns: "arguments": "desktop" instead of "arguments": "{\"path\":\"desktop\"}"
         let response = #"{"tool_calls": [{"id": "c1", "type": "function", "function": {"name": "list_dir", "arguments": "desktop"}}]}"#
         let result = ToolCallHandler.detectToolCall(in: response)
         try assertNotNil(result)
         try assertEqual(result!.first?.name, "list_dir")
-        // The plain string should be preserved as-is (caller handles mapping)
-        try assertEqual(result!.first?.argumentsString, "desktop")
+        // Plain string must be wrapped as valid JSON per OpenAI spec
+        try assertEqual(result!.first?.argumentsString, #"{"value":"desktop"}"#)
     }
 
     test("handles arguments as JSON object (not string)") {
@@ -133,11 +133,11 @@ func runToolCallHandlerTests() {
         try assertTrue(result!.first!.argumentsString.contains("Vienna"))
     }
 
-    test("handles empty arguments string") {
+    test("handles empty arguments string — becomes empty JSON object") {
         let response = #"{"tool_calls": [{"id": "c1", "type": "function", "function": {"name": "fn", "arguments": ""}}]}"#
         let result = ToolCallHandler.detectToolCall(in: response)
         try assertNotNil(result)
-        try assertEqual(result!.first?.argumentsString, "")
+        try assertEqual(result!.first?.argumentsString, "{}")
     }
 
     test("handles missing arguments field") {
@@ -145,6 +145,56 @@ func runToolCallHandlerTests() {
         let result = ToolCallHandler.detectToolCall(in: response)
         try assertNotNil(result)
         try assertEqual(result!.first?.argumentsString, "{}")
+    }
+
+    // MARK: - ensureJSONArguments (TICKET-013 fix)
+
+    test("ensureJSONArguments passes through valid JSON object") {
+        let result = ToolCallHandler.ensureJSONArguments(#"{"path":"desktop"}"#)
+        try assertEqual(result, #"{"path":"desktop"}"#)
+    }
+
+    test("ensureJSONArguments passes through JSON array") {
+        let result = ToolCallHandler.ensureJSONArguments(#"["a","b"]"#)
+        try assertEqual(result, #"["a","b"]"#)
+    }
+
+    test("ensureJSONArguments wraps plain string") {
+        let result = ToolCallHandler.ensureJSONArguments("desktop")
+        try assertEqual(result, #"{"value":"desktop"}"#)
+    }
+
+    test("ensureJSONArguments wraps string with spaces") {
+        let result = ToolCallHandler.ensureJSONArguments("ls -la /tmp")
+        try assertEqual(result, #"{"value":"ls -la /tmp"}"#)
+    }
+
+    test("ensureJSONArguments escapes quotes in plain string") {
+        let result = ToolCallHandler.ensureJSONArguments(#"say "hello""#)
+        try assertEqual(result, #"{"value":"say \"hello\""}"#)
+    }
+
+    test("ensureJSONArguments converts empty string to empty object") {
+        try assertEqual(ToolCallHandler.ensureJSONArguments(""), "{}")
+        try assertEqual(ToolCallHandler.ensureJSONArguments("  "), "{}")
+    }
+
+    test("ensureJSONArguments handles whitespace-padded JSON") {
+        let result = ToolCallHandler.ensureJSONArguments("  {\"key\": \"val\"}  ")
+        // Should pass through since trimmed starts with {
+        try assertTrue(result.contains("key"))
+    }
+
+    test("plain string arguments produce parseable JSON in full pipeline") {
+        let response = #"{"tool_calls": [{"id": "c1", "type": "function", "function": {"name": "run_cmd", "arguments": "ls -l"}}]}"#
+        let result = ToolCallHandler.detectToolCall(in: response)
+        try assertNotNil(result)
+        let argsStr = result!.first!.argumentsString
+        // Must be parseable JSON
+        let data = argsStr.data(using: .utf8)!
+        let parsed = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        try assertNotNil(parsed)
+        try assertEqual(parsed!["value"] as? String, "ls -l")
     }
 
     // MARK: - Split prompt methods

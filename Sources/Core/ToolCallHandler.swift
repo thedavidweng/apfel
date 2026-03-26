@@ -149,6 +149,26 @@ public enum ToolCallHandler {
         return candidates
     }
 
+    /// Ensure an arguments string is valid JSON per OpenAI spec.
+    /// If the string is already a JSON object/array, return as-is.
+    /// If it's empty, return "{}". If it's a plain string (e.g. "desktop"),
+    /// wrap it as {"value": "desktop"} so consumers can always JSON-parse it.
+    public static func ensureJSONArguments(_ s: String) -> String {
+        let trimmed = s.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Empty string → empty object
+        if trimmed.isEmpty { return "{}" }
+        // Already a JSON object or array
+        if trimmed.hasPrefix("{") || trimmed.hasPrefix("[") { return s }
+        // Plain string — wrap as {"value": "<escaped>"}
+        let escaped = trimmed
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            .replacingOccurrences(of: "\t", with: "\\t")
+        return "{\"value\":\"\(escaped)\"}"
+    }
+
     private static func parseToolCallJSON(_ json: String) -> [ParsedToolCall]? {
         guard let data = json.data(using: .utf8),
               let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -162,7 +182,7 @@ public enum ToolCallHandler {
                   let name = fn["name"] as? String else { continue }
             let args: String
             if let s = fn["arguments"] as? String {
-                args = s
+                args = ensureJSONArguments(s)
             } else if let obj = fn["arguments"],
                       let data = try? JSONSerialization.data(withJSONObject: obj),
                       let s = String(data: data, encoding: .utf8) {
