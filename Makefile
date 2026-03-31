@@ -14,11 +14,12 @@ check-toolchain:
 		echo ""; \
 		echo "error: apfel could not determine your active Apple SDK version."; \
 		echo "Selected developer dir: $$devdir"; \
-		echo "Install or update Command Line Tools (or Xcode), then retry."; \
+		echo "Install or update Command Line Tools, then retry."; \
 		echo ""; \
 		echo "Checks:"; \
 		echo "  xcode-select -p"; \
 		echo "  xcrun --show-sdk-version"; \
+		echo "  xcode-select --install"; \
 		exit 1; \
 	fi; \
 	major=$$(echo "$$sdk" | cut -d. -f1); \
@@ -35,9 +36,9 @@ check-toolchain:
 		echo "  FoundationModels token-counting APIs (tokenCount/contextSize) are missing from older SDKs."; \
 		echo ""; \
 		echo "What you need to update:"; \
-		echo "  1. Update Command Line Tools or install Xcode 26.4+."; \
-		echo "  2. If Xcode 26.4+ is already installed, select it:"; \
-		echo "     sudo xcode-select -s /Applications/Xcode.app/Contents/Developer"; \
+		echo "  1. Update Command Line Tools to the macOS 26.4 SDK or newer."; \
+		echo "  2. Select Command Line Tools explicitly if needed:"; \
+		echo "     sudo xcode-select -s /Library/Developer/CommandLineTools"; \
 		echo "  3. Re-check with: xcrun --show-sdk-version"; \
 		echo "  4. Re-run: make install"; \
 		exit 1; \

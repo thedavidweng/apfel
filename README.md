@@ -74,7 +74,27 @@ value of type 'SystemLanguageModel' has no member 'tokenCount'
 value of type 'SystemLanguageModel' has no member 'contextSize'
 ```
 
-your Mac may already be on macOS 26.4, but your selected developer tools are older than the macOS 26.4 SDK. Update Command Line Tools (or Xcode), confirm `xcrun --show-sdk-version` prints `26.4` or newer, then rerun `make install`.
+your Mac may already be on macOS 26.4, but your selected Command Line Tools are older than the macOS 26.4 SDK.
+
+`apfel` only requires Command Line Tools. It does **not** require Xcode.
+
+Fix path:
+
+```bash
+# update/install Command Line Tools
+xcode-select --install
+
+# ensure the CLT developer dir is selected
+sudo xcode-select -s /Library/Developer/CommandLineTools
+
+# confirm the active SDK is new enough
+xcrun --show-sdk-version
+
+# retry
+make install
+```
+
+`xcrun --show-sdk-version` must print `26.4` or newer.
 
 Verify it works:
 
