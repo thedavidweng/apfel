@@ -14,6 +14,12 @@
 #   cmd -x what process is using port 3000
 #   cmd list all git branches merged into main
 #
+# Note: Apple's on-device model has safety guardrails that may block prompts
+# containing words like "kill", "terminate", "destroy", etc. — even in
+# legitimate contexts (e.g. "kill all node processes"). Rephrase to avoid:
+#   BAD:  cmd "kill all node processes"
+#   GOOD: cmd "stop all running node processes"
+#
 # Requires: apfel installed (https://github.com/Arthur-Ficial/apfel)
 
 EXECUTE=false
