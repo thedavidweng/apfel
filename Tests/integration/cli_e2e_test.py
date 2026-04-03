@@ -241,7 +241,7 @@ def test_file_flag_missing_path():
 def test_file_flag_nonexistent_file():
     result = run_cli(["-f", "/tmp/apfel_no_such_file_ever.txt", "summarize"])
     assert result.returncode == 2
-    assert "Cannot read file" in result.stderr
+    assert "no such file" in result.stderr
 
 
 def test_file_flag_with_prompt():

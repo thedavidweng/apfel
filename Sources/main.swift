@@ -62,8 +62,9 @@ if args.isEmpty {
                 try await singlePrompt(input, systemPrompt: nil, stream: true)
                 exit(exitSuccess)
             } catch {
-                printError(error.localizedDescription)
-                exit(exitRuntimeError)
+                let classified = ApfelError.classify(error)
+                printError("\(classified.cliLabel) \(classified.openAIMessage)")
+                exit(exitCode(for: classified))
             }
         }
     }
@@ -279,7 +280,7 @@ while i < args.count {
             systemPrompt = try String(contentsOfFile: path, encoding: .utf8)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
         } catch {
-            printError("Cannot read file: \(path)")
+            printError(fileErrorMessage(path: path))
             exit(exitUsageError)
         }
 
@@ -297,7 +298,7 @@ while i < args.count {
             let content = try String(contentsOfFile: path, encoding: .utf8)
             fileContents.append(content)
         } catch {
-            printError("Cannot read file: \(path)")
+            printError(fileErrorMessage(path: path))
             exit(exitUsageError)
         }
 
@@ -409,4 +410,15 @@ do {
     let classified = ApfelError.classify(error)
     printError("\(classified.cliLabel) \(classified.openAIMessage)")
     exit(exitCode(for: classified))
+}
+
+func fileErrorMessage(path: String) -> String {
+    let fm = FileManager.default
+    if !fm.fileExists(atPath: path) {
+        return "no such file: \(path)"
+    }
+    if !fm.isReadableFile(atPath: path) {
+        return "permission denied: \(path)"
+    }
+    return "cannot read file: \(path)"
 }

@@ -107,7 +107,7 @@ func startServer(config: ServerConfig) async throws {
                 error: "Too many concurrent requests", request_body: nil, response_body: nil, events: ["semaphore timeout"]
             )
             await serverState.logStore.append(log)
-            return openAIError(status: .tooManyRequests, message: "Server at max concurrent capacity (\(config.maxConcurrent)). Try again later.", type: "rate_limit_error")
+            return openAIError(status: .tooManyRequests, message: "Server at max concurrent capacity (\(config.maxConcurrent)). Try again later or increase with --max-concurrent.", type: "rate_limit_error")
         }
 
         await serverState.logStore.requestStarted()
