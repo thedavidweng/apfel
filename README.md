@@ -164,6 +164,28 @@ echo "some text" | apfel "Summarize this"
 echo "extra context" | apfel -f code.swift "Explain this code with the context above"
 ```
 
+## MCP Tool Support
+
+Attach [MCP](https://modelcontextprotocol.io/) tool servers with `--mcp`. apfel discovers tools, executes them automatically, and returns the final answer. No glue code needed.
+
+```bash
+# Give the model a calculator
+apfel --mcp ./mcp/calculator/server.py "What is 15 times 27?"
+# tool: multiply({"a": 15, "b": 27}) = 405
+# 15 times 27 is 405.
+
+# Multiple MCP servers
+apfel --mcp ./calc.py --mcp ./weather.py "What is sqrt(2025)?"
+
+# Server mode - tools auto-available to all clients
+apfel --serve --mcp ./mcp/calculator/server.py
+
+# No --mcp = exactly as before. Zero overhead.
+apfel "What is 2+2?"
+```
+
+Ships with a calculator MCP server at `mcp/calculator/`. See [MCP docs](docs/mcp-calculator.md) for details and how to build your own.
+
 ## Demos
 
 See [`demo/`](./demo/) for real-world shell scripts powered by apfel.
@@ -261,27 +283,6 @@ Chat, debug inspector, request logs, context settings, speech-to-text, text-to-s
 
 Full API spec: [openai/openai-openapi](https://github.com/openai/openai-openapi)
 
-### Native MCP Support
-
-Attach [MCP](https://modelcontextprotocol.io/) tool servers with `--mcp`. apfel discovers tools, executes them automatically, and returns the final answer. No glue code needed.
-
-```bash
-# Give the model a calculator
-apfel --mcp ./mcp/calculator/server.py "What is 15 times 27?"
-# tool: multiply({"a": 15, "b": 27}) = 405
-# 15 times 27 is 405.
-
-# Multiple MCP servers
-apfel --mcp ./calc.py --mcp ./weather.py "What is sqrt(2025)?"
-
-# Server mode - tools auto-available to all clients
-apfel --serve --mcp ./mcp/calculator/server.py
-
-# No --mcp = exactly as before. Zero overhead.
-apfel "What is 2+2?"
-```
-
-Ships with a calculator MCP server at `mcp/calculator/`. See [MCP docs](docs/mcp-calculator.md) for details and how to build your own.
 
 ## Limitations
 
