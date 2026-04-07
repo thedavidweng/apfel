@@ -479,6 +479,39 @@ def test_file_flag_nonexistent_file():
     assert "no such file" in result.stderr
 
 
+def test_file_flag_image_gives_clear_error():
+    """Attaching an image file should explain that vision is not supported."""
+    tmp = pathlib.Path("/tmp/apfel_test_image.jpeg")
+    tmp.write_bytes(b'\xff\xd8\xff\xe0\x00\x10JFIF')  # JPEG header
+    result = run_cli(["-f", str(tmp), "describe this"])
+    assert result.returncode == 2
+    assert "text-only" in result.stderr or "image" in result.stderr, \
+        f"Expected image-specific error, got: {result.stderr}"
+    tmp.unlink()
+
+
+def test_file_flag_binary_gives_clear_error():
+    """Attaching a binary file should explain that only text is supported."""
+    tmp = pathlib.Path("/tmp/apfel_test_binary.zip")
+    tmp.write_bytes(b'PK\x03\x04' + bytes(range(128, 256)) * 4)  # ZIP header + invalid UTF-8
+    result = run_cli(["-f", str(tmp), "read this"])
+    assert result.returncode == 2
+    assert "binary" in result.stderr or "text" in result.stderr, \
+        f"Expected binary-specific error, got: {result.stderr}"
+    tmp.unlink()
+
+
+def test_file_flag_unknown_binary_gives_utf8_error():
+    """Attaching an unknown binary file should mention UTF-8."""
+    tmp = pathlib.Path("/tmp/apfel_test_unknown.dat2")
+    tmp.write_bytes(b'\x80\x81\x82\x83\xff\xfe')  # invalid UTF-8
+    result = run_cli(["-f", str(tmp), "read this"])
+    assert result.returncode == 2
+    assert "utf-8" in result.stderr.lower() or "binary" in result.stderr.lower() or "text" in result.stderr.lower(), \
+        f"Expected UTF-8/binary error, got: {result.stderr}"
+    tmp.unlink()
+
+
 def test_file_flag_with_prompt():
     """apfel -f <file> <prompt> should prepend file content to the prompt."""
     require_model()

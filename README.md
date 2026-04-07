@@ -1,6 +1,6 @@
 # apfel
 
-[![Version 0.9.0](https://img.shields.io/badge/version-0.9.0-blue)](https://github.com/Arthur-Ficial/apfel)
+[![Version 0.9.2](https://img.shields.io/badge/version-0.9.2-blue)](https://github.com/Arthur-Ficial/apfel)
 [![Swift 6.3+](https://img.shields.io/badge/Swift-6.3%2B-F05138?logo=swift&logoColor=white)](https://swift.org)
 [![macOS 26+](https://img.shields.io/badge/macOS-26%2B-000000?logo=apple&logoColor=white)](https://developer.apple.com/macos/)
 [![No Xcode Required](https://img.shields.io/badge/Xcode-not%20required-orange)](https://developer.apple.com/xcode/resources/)
@@ -63,6 +63,9 @@ Shell note: if your prompt contains `!`, prefer single quotes in `zsh`/`bash` so
 ```bash
 # Single prompt
 apfel "What is the capital of Austria?"
+
+# Permissive mode -- reduces guardrail false positives for creative/long prompts
+apfel --permissive "Write a dramatic opening for a thriller novel"
 
 # Stream output
 apfel --stream "Write a haiku about code"
@@ -441,8 +444,9 @@ apfel --seed 42 "Tell me a joke"
 # --max-tokens
 apfel --max-tokens 50 "Explain quantum computing"
 
-# --permissive
+# --permissive — relaxed guardrails (see docs/PERMISSIVE.md for comparison)
 apfel --permissive "Write a villain monologue"
+apfel --permissive -f long-document.md "Summarize this"
 
 # --retry
 apfel --retry "What is 2+2?"

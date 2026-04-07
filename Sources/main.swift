@@ -543,5 +543,13 @@ func fileErrorMessage(path: String) -> String {
     if !fm.isReadableFile(atPath: path) {
         return "permission denied: \(path)"
     }
-    return "cannot read file: \(path)"
+    let ext = (path.lowercased() as NSString).pathExtension
+    switch ext {
+    case "jpg", "jpeg", "png", "gif", "webp", "heic", "heif", "tiff", "bmp", "svg", "ico":
+        return "cannot attach image: \(path) -- the on-device model is text-only (no vision). Try: tesseract \(path) stdout | apfel \"describe this\""
+    case "pdf", "zip", "tar", "gz", "dmg", "pkg", "exe", "bin", "dat", "mp3", "mp4", "mov", "avi", "wav":
+        return "cannot attach binary file: \(path) -- only text files are supported"
+    default:
+        return "file is not valid UTF-8 text: \(path) (binary file?)"
+    }
 }
